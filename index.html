@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HRMIS — Human Resource Management System</title>
+<style>
+  :root{
+    --navy:#16233A; --amber:#E8A838; --amberDk:#C6871B; --teal:#1D6E82; --plum:#7A2E43;
+    --bg:#F3F5F9; --card:#FFFFFF; --ink:#18243A; --muted:#64748B; --line:#E4E9F1;
+    --green:#2F9E6A; --red:#D2544B;
+    --serif: Georgia, 'Times New Roman', serif;
+    --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:var(--sans); background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased;}
+  button{font-family:var(--sans);}
+  input,select,textarea{font-family:var(--sans);}
+  ::-webkit-scrollbar{width:8px;height:8px;} ::-webkit-scrollbar-thumb{background:#cbd3e0;border-radius:8px;}
+
+  .app{display:flex; min-height:100vh;}
+  .sidebar{width:258px; background:var(--navy); color:#fff; flex-shrink:0; position:sticky; top:0; height:100vh; display:flex; flex-direction:column;}
+  .brand{padding:22px 22px 18px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:11px;}
+  .brand .logo{width:40px;height:40px;border-radius:10px;background:var(--amber);color:var(--navy);display:grid;place-items:center;font-family:var(--serif);font-weight:700;font-size:19px;}
+  .brand .t1{font-family:var(--serif);font-size:18px;font-weight:700;line-height:1;}
+  .brand .t2{font-size:10.5px;color:#93A0B8;margin-top:3px;letter-spacing:.04em;}
+  nav{padding:12px;overflow-y:auto;flex:1;}
+  .navitem{width:100%;display:flex;align-items:center;gap:11px;cursor:pointer;background:transparent;border:none;border-left:3px solid transparent;color:#AEB9CD;padding:10px 12px;border-radius:8px;margin-bottom:2px;font-size:13.5px;font-weight:500;text-align:left;}
+  .navitem:hover{color:#fff;background:rgba(255,255,255,.05);}
+  .navitem.on{background:rgba(232,168,56,.14);border-left-color:var(--amber);color:#fff;font-weight:600;}
+  .navitem .num{margin-left:auto;font-size:10.5px;color:#5E6B85;font-variant-numeric:tabular-nums;}
+  .foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#7E8CA6;}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  header.top{height:62px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:5;}
+  .crumb{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);}
+  .crumb b{color:var(--ink);font-weight:600;}
+  .burger{display:none;background:none;border:none;cursor:pointer;color:var(--ink);}
+  .topright{display:flex;align-items:center;gap:16px;}
+  .avatar{width:34px;height:34px;border-radius:20px;background:var(--navy);color:var(--amber);display:grid;place-items:center;font-weight:600;font-size:13px;}
+  .who .n{font-size:13px;font-weight:600;} .who .r{font-size:11px;color:var(--muted);}
+  main.content{padding:26px 28px 60px;max-width:1180px;width:100%;margin:0 auto;}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(22,35,58,.04);}
+  .sectitle{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+  .eyebrow{color:var(--amberDk);font-weight:700;letter-spacing:.14em;font-size:11px;text-transform:uppercase;margin-bottom:6px;}
+  h1.page{font-family:var(--serif);font-size:30px;font-weight:700;margin:0;line-height:1.1;}
+  .lead{color:var(--muted);margin:-8px 0 22px;max-width:640px;font-size:14.5px;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
+  .kpi{padding:18px 20px;} .kpi .lab{color:var(--muted);font-size:12.5px;font-weight:500;margin-bottom:8px;}
+  .kpi .val{font-family:var(--serif);font-size:30px;font-weight:700;line-height:1;}
+  .kpi .dot{width:8px;height:8px;border-radius:8px;margin-top:6px;}
+  .kpi .delta{display:flex;align-items:center;gap:4px;margin-top:12px;font-size:12.5px;font-weight:600;}
+  .kpi .delta span{color:var(--muted);font-weight:400;}
+  .row{display:flex;justify-content:space-between;align-items:flex-start;}
+  .pill{font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;display:inline-block;}
+  .pill.neutral{background:#EEF1F6;color:var(--muted);} .pill.green{background:#E6F4EC;color:var(--green);}
+  .pill.amber{background:#FBF0D9;color:var(--amberDk);} .pill.red{background:#FBE9E7;color:var(--red);} .pill.blue{background:#E6EEF6;color:var(--teal);}
+  .btn{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:600;padding:9px 15px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);}
+  .btn.primary{border:none;background:var(--navy);color:#fff;} .btn:hover{filter:brightness(.98);}
+  .btn:active{transform:translateY(1px);}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .grid2{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:16px;}
+  .grid11{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .ctitle{font-weight:600;margin-bottom:4px;} .csub{color:var(--muted);font-size:12.5px;margin-bottom:14px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;padding:12px 16px;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line);}
+  td{padding:12px 16px;color:var(--ink);border-bottom:1px solid var(--line);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FAFBFD;}
+  .mono{font-variant-numeric:tabular-nums;color:var(--muted);}
+  .rowbtns{display:flex;gap:6px;justify-content:flex-end;}
+  .iconbtn{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card);cursor:pointer;display:grid;place-items:center;color:var(--muted);}
+  .iconbtn:hover{color:var(--ink);background:#F5F7FB;} .iconbtn.danger:hover{color:var(--red);border-color:#F3C9C4;background:#FDF3F2;}
+  .searchbar{display:flex;align-items:center;gap:8px;background:#F5F7FB;border:1px solid var(--line);border-radius:9px;padding:8px 12px;flex:1;min-width:180px;max-width:320px;}
+  .searchbar input{border:none;outline:none;background:transparent;font-size:13.5px;width:100%;color:var(--ink);}
+  .filterbar{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .fsel{border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:13px;background:var(--card);color:var(--ink);cursor:pointer;}
+  .bar-track{height:8px;background:#EEF1F6;border-radius:20px;overflow:hidden;}
+  .bar-fill{height:100%;transition:width .4s ease;}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px;}
+  .tile{text-align:left;cursor:pointer;background:#FAFBFD;border:1px solid var(--line);border-radius:11px;padding:13px 14px;display:flex;gap:11px;align-items:center;}
+  .tile:hover{background:#F2F5FA;}
+  .tile .ic{width:34px;height:34px;border-radius:9px;background:var(--navy);display:grid;place-items:center;flex-shrink:0;}
+  .tile .nm{display:block;font-size:13px;font-weight:600;} .tile .fn{display:block;font-size:11px;color:var(--muted);}
+  .listrow{display:flex;align-items:center;gap:12px;padding:13px 8px;border-bottom:1px solid var(--line);}
+  .listrow:last-child{border-bottom:none;}
+  .listrow .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;}
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;}
+  .legend div{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+  .legend .sw{width:9px;height:9px;border-radius:3px;}
+  .empty{padding:34px 16px;text-align:center;color:var(--muted);font-size:13.5px;}
+  .sechead{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);}
+  .sechead .t{font-weight:600;}
+
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:60;overflow-y:auto;animation:fade .15s ease;}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .modal{background:var(--card);border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(15,23,42,.28);animation:pop .16s ease;}
+  @keyframes pop{from{transform:translateY(8px) scale(.99);opacity:.6}to{transform:none;opacity:1}}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line);}
+  .modal-head h3{margin:0;font-family:var(--serif);font-size:20px;font-weight:700;}
+  .modal-x{background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;border-radius:8px;}
+  .modal-x:hover{background:#F1F4F8;color:var(--ink);}
+  .modal-body{padding:20px 22px;}
+  .modal-foot{padding:16px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;}
+  .field{display:block;margin-bottom:14px;} .field span{display:block;font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:6px;}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--ink);outline:none;background:var(--card);}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(232,168,56,.15);}
+  .field textarea{resize:vertical;}
+  .grid-fields{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+
+  /* toasts */
+  #toasts{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center;}
+  .toast{display:flex;align-items:center;gap:9px;background:var(--navy);color:#fff;padding:11px 16px;border-radius:11px;font-size:13.5px;font-weight:500;box-shadow:0 10px 30px rgba(15,23,42,.3);opacity:0;transform:translateY(10px);transition:.3s;max-width:90vw;}
+  .toast.show{opacity:1;transform:none;} .toast.red{background:var(--red);} .toast.green{background:var(--green);}
+
+  @media (max-width:900px){ .grid2,.grid11,.grid-fields{grid-template-columns:1fr;} }
+  @media (max-width:860px){
+    .sidebar{position:fixed;z-index:40;transform:translateX(-100%);transition:transform .25s ease;}
+    .sidebar.open{transform:translateX(0);box-shadow:0 0 60px rgba(0,0,0,.4);}
+    .burger{display:block;} .who{display:none;} main.content{padding:20px 16px 48px;}
+  }
+  .scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30;} .scrim.show{display:block;}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="logo">H</div><div><div class="t1">HRMIS</div><div class="t2">HR Management System</div></div></div>
+    <nav id="nav"></nav>
+    <div class="foot">HRMIS · 12 core HR functions</div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+  <div class="main">
+    <header class="top">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="burger" id="burger" aria-label="Menu"></button>
+        <div class="crumb"><span>HRMIS</span><span id="crumbIcon"></span><b id="crumbName">Dashboard</b></div>
+      </div>
+      <div class="topright">
+        <div style="position:relative;" id="bellWrap"></div>
+        <div style="display:flex;align-items:center;gap:9px;"><div class="avatar">PN</div>
+          <div class="who"><div class="n">Priya Nair</div><div class="r">HR Administrator</div></div></div>
+      </div>
+    </header>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+<div id="toasts"></div>
+<script>
+/* ================================================================
+   HRMIS — application logic (vanilla JS, no dependencies)
+   ================================================================ */
+var C = {navy:"#16233A",amber:"#E8A838",amberDk:"#C6871B",teal:"#1D6E82",plum:"#7A2E43",
+  bg:"#F3F5F9",card:"#FFFFFF",ink:"#18243A",muted:"#64748B",line:"#E4E9F1",green:"#2F9E6A",red:"#D2544B"};
+
+/* ---------------------------- icons ---------------------------- */
+var P = {
+  dashboard:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  trending:'<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  userplus:'<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  cap:'<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+  target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  wallet:'<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>',
+  bank:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+  hand:'<path d="M11 17l1.5 1.5a2 2 0 0 0 3-3"/><path d="M13.5 15.5 16 18a2 2 0 0 0 3-3l-4-4"/><path d="m21 11-4-4-3.5 3.5a2 2 0 0 1-3 0L8 8l-5 5"/><path d="m3 8 3-3 4 1"/>',
+  shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/><path d="m9 12 2 2 4-4"/>',
+  scale:'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+  heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/>',
+  search:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  chevron:'<polyline points="9 18 15 12 9 6"/>',
+  menu:'<line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  up:'<line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>',
+  down:'<line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 7 17 17 7 17"/>',
+  check:'<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  alert:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  filter:'<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+  arrowR:'<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
+  play:'<polygon points="5 3 19 12 5 21 5 3"/>'
+};
+function icon(n, size, color){ size=size||18; color=color||"currentColor";
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(P[n]||"")+'</svg>'; }
+
+/* ---------------------------- modules ---------------------------- */
+var MODULES = [
+  {id:"dashboard",n:"—",name:"Dashboard",ic:"dashboard",sub:"Overview"},
+  {id:"planning",n:"01",name:"HR Planning",ic:"trending",sub:"Forecasting future staffing needs"},
+  {id:"recruitment",n:"02",name:"Recruitment",ic:"userplus",sub:"Finding & hiring the right people"},
+  {id:"records",n:"03",name:"Employee Records",ic:"users",sub:"Accurate, easy-to-retrieve employee data"},
+  {id:"training",n:"04",name:"Training & Development",ic:"cap",sub:"Building employee skills"},
+  {id:"performance",n:"05",name:"Performance",ic:"target",sub:"Measuring & improving performance"},
+  {id:"compensation",n:"06",name:"Compensation & Benefits",ic:"wallet",sub:"Rewarding employees"},
+  {id:"payroll",n:"07",name:"Payroll",ic:"bank",sub:"Accurate, on-time salaries"},
+  {id:"relations",n:"08",name:"Employee Relations",ic:"hand",sub:"Management–staff relationships"},
+  {id:"safety",n:"09",name:"Health & Safety",ic:"heart",sub:"Protecting employees at work"},
+  {id:"compliance",n:"10",name:"Legal Compliance",ic:"scale",sub:"Following labor laws"},
+  {id:"career",n:"11",name:"Career Development",ic:"file",sub:"Growth & succession planning"},
+  {id:"engagement",n:"12",name:"Employee Engagement",ic:"shield",sub:"Motivation & involvement"}
+];
+function mod(id){ for(var i=0;i<MODULES.length;i++) if(MODULES[i].id===id) return MODULES[i]; }
+
+/* ---------------------------- data store ---------------------------- */
+var DEPTS=["Engineering","Sales","Marketing","Finance","HR","Product","Operations"];
+var DB = {
+  employees:[
+    {id:"E-1042",name:"Sara Al-Mansour",dept:"Engineering",role:"Senior Developer",status:"Active",join:"2021-03-14",salary:9800,email:"sara.a@company.com"},
+    {id:"E-1088",name:"James Okoro",dept:"Sales",role:"Account Executive",status:"Active",join:"2022-07-01",salary:7200,email:"james.o@company.com"},
+    {id:"E-1103",name:"Mei Lin Chen",dept:"Finance",role:"Financial Analyst",status:"On Leave",join:"2020-11-09",salary:8100,email:"mei.c@company.com"},
+    {id:"E-1120",name:"Omar Haddad",dept:"Engineering",role:"DevOps Engineer",status:"Active",join:"2023-01-23",salary:8600,email:"omar.h@company.com"},
+    {id:"E-1155",name:"Priya Nair",dept:"HR",role:"HR Business Partner",status:"Active",join:"2019-05-30",salary:8900,email:"priya.n@company.com"},
+    {id:"E-1178",name:"Daniel Brooks",dept:"Marketing",role:"Content Lead",status:"Active",join:"2022-09-12",salary:7600,email:"daniel.b@company.com"},
+    {id:"E-1201",name:"Aisha Rahman",dept:"Sales",role:"Sales Manager",status:"Active",join:"2018-02-18",salary:11200,email:"aisha.r@company.com"},
+    {id:"E-1234",name:"Lucas Ferreira",dept:"Engineering",role:"Frontend Developer",status:"Probation",join:"2024-08-05",salary:6900,email:"lucas.f@company.com"},
+    {id:"E-1250",name:"Hana Suzuki",dept:"Product",role:"Product Manager",status:"Active",join:"2021-06-21",salary:10400,email:"hana.s@company.com"},
+    {id:"E-1263",name:"Marcus Bell",dept:"Engineering",role:"Backend Developer",status:"Active",join:"2020-04-11",salary:9200,email:"marcus.b@company.com"},
+    {id:"E-1279",name:"Fatima Zahra",dept:"Operations",role:"Ops Coordinator",status:"Active",join:"2023-03-02",salary:6400,email:"fatima.z@company.com"},
+    {id:"E-1288",name:"Tom Wagner",dept:"Finance",role:"Accountant",status:"Active",join:"2019-10-15",salary:7300,email:"tom.w@company.com"},
+    {id:"E-1294",name:"Nadia Petrova",dept:"Marketing",role:"SEO Specialist",status:"Active",join:"2022-01-19",salary:6800,email:"nadia.p@company.com"},
+    {id:"E-1301",name:"Kevin Park",dept:"Sales",role:"Sales Development Rep",status:"Probation",join:"2024-05-27",salary:5200,email:"kevin.p@company.com"},
+    {id:"E-1312",name:"Grace Mwangi",dept:"HR",role:"Recruiter",status:"Active",join:"2021-08-08",salary:6600,email:"grace.m@company.com"},
+    {id:"E-1327",name:"Ravi Kapoor",dept:"Engineering",role:"QA Engineer",status:"Active",join:"2022-11-30",salary:7400,email:"ravi.k@company.com"},
+    {id:"E-1339",name:"Elena Rossi",dept:"Product",role:"UX Designer",status:"Active",join:"2023-07-14",salary:8200,email:"elena.r@company.com"},
+    {id:"E-1345",name:"David Cohen",dept:"Operations",role:"Facilities Manager",status:"On Leave",join:"2020-02-25",salary:6900,email:"david.c@company.com"}
+  ],
+  plans:[
+    {id:"HP-01",title:"Engineering scale-up — H2",dept:"Engineering",add:12,budget:1250000,status:"Approved"},
+    {id:"HP-02",title:"Sales expansion — EMEA",dept:"Sales",add:6,budget:520000,status:"In review"},
+    {id:"HP-03",title:"Finance restructure",dept:"Finance",add:2,budget:180000,status:"At risk"}
+  ],
+  jobs:[
+    {id:"J-01",role:"Backend Engineer",dept:"Engineering",stage:"Interview",days:12},
+    {id:"J-02",role:"Enterprise AE",dept:"Sales",stage:"Screening",days:6},
+    {id:"J-03",role:"Product Designer",dept:"Product",stage:"Offer",days:23},
+    {id:"J-04",role:"Payroll Specialist",dept:"Finance",stage:"Applied",days:3},
+    {id:"J-05",role:"Marketing Manager",dept:"Marketing",stage:"Screening",days:9}
+  ],
+  candidates:[
+    {id:"CN-01",name:"Alex Turner",job:"Backend Engineer",stage:"Interview"},
+    {id:"CN-02",name:"Bianca Lopez",job:"Backend Engineer",stage:"Screened"},
+    {id:"CN-03",name:"Chen Wei",job:"Enterprise AE",stage:"Applied"},
+    {id:"CN-04",name:"Diana Prince",job:"Product Designer",stage:"Offer"},
+    {id:"CN-05",name:"Ethan Cole",job:"Product Designer",stage:"Interview"},
+    {id:"CN-06",name:"Farah Idris",job:"Marketing Manager",stage:"Applied"},
+    {id:"CN-07",name:"George Kim",job:"Backend Engineer",stage:"Applied"},
+    {id:"CN-08",name:"Hina Malik",job:"Enterprise AE",stage:"Screened"},
+    {id:"CN-09",name:"Isaac Owens",job:"Payroll Specialist",stage:"Applied"},
+    {id:"CN-10",name:"Julia Santos",job:"Marketing Manager",stage:"Screened"},
+    {id:"CN-11",name:"Karl Fisher",job:"Product Designer",stage:"Screened"},
+    {id:"CN-12",name:"Lena Vogel",job:"Enterprise AE",stage:"Hired"},
+    {id:"CN-13",name:"Mo Salah",job:"Backend Engineer",stage:"Applied"},
+    {id:"CN-14",name:"Nora Haddad",job:"Marketing Manager",stage:"Interview"}
+  ],
+  courses:[
+    {id:"TR-01",name:"Leadership Essentials",cat:"Leadership",enrolled:42,done:71},
+    {id:"TR-02",name:"Cybersecurity Awareness",cat:"Compliance",enrolled:244,done:96},
+    {id:"TR-03",name:"Advanced Excel",cat:"Technical",enrolled:58,done:54},
+    {id:"TR-04",name:"Effective Communication",cat:"Soft skills",enrolled:90,done:63},
+    {id:"TR-05",name:"Data Privacy & GDPR",cat:"Compliance",enrolled:210,done:88}
+  ],
+  reviews:[
+    {id:"PR-01",employee:"Sara Al-Mansour",period:"H1 2026",rating:"Exceeds",goals:92},
+    {id:"PR-02",employee:"James Okoro",period:"H1 2026",rating:"Strong",goals:78},
+    {id:"PR-03",employee:"Omar Haddad",period:"H1 2026",rating:"Strong",goals:81},
+    {id:"PR-04",employee:"Aisha Rahman",period:"H1 2026",rating:"Exceeds",goals:95},
+    {id:"PR-05",employee:"Marcus Bell",period:"H1 2026",rating:"Meets",goals:70},
+    {id:"PR-06",employee:"Nadia Petrova",period:"H1 2026",rating:"Meets",goals:66},
+    {id:"PR-07",employee:"Kevin Park",period:"H1 2026",rating:"Developing",goals:48},
+    {id:"PR-08",employee:"Ravi Kapoor",period:"H1 2026",rating:"Strong",goals:83},
+    {id:"PR-09",employee:"Elena Rossi",period:"H1 2026",rating:"Strong",goals:80},
+    {id:"PR-10",employee:"Lucas Ferreira",period:"H1 2026",rating:"Developing",goals:52},
+    {id:"PR-11",employee:"Tom Wagner",period:"H1 2026",rating:"Meets",goals:72},
+    {id:"PR-12",employee:"Hana Suzuki",period:"H1 2026",rating:"Strong",goals:85},
+    {id:"PR-13",employee:"Daniel Brooks",period:"H1 2026",rating:"Below",goals:38}
+  ],
+  comp:[
+    {id:"CB-01",item:"Annual merit increase",type:"Salary",amount:3.5,status:"Open"},
+    {id:"CB-02",item:"Health insurance 2026",type:"Benefit",amount:0,status:"Complete"},
+    {id:"CB-03",item:"Performance bonus pool",type:"Bonus",amount:420000,status:"Pending"},
+    {id:"CB-04",item:"Equity refresh grants",type:"Equity",amount:0,status:"Pending"}
+  ],
+  payrolls:[
+    {id:"PY-01",month:"May 2026",count:16,gross:127500,ded:24225,status:"Approved & paid",date:"2026-05-28"}
+  ],
+  cases:[
+    {id:"ER-01",title:"Grievance — scheduling",type:"Grievance",employee:"Warehouse team",assigned:"Priya Nair",status:"Open"},
+    {id:"ER-02",title:"Mediation — Marketing",type:"Mediation",employee:"N. Petrova / D. Brooks",assigned:"Grace Mwangi",status:"In progress"},
+    {id:"ER-03",title:"Policy dispute #198",type:"Dispute",employee:"K. Park",assigned:"Priya Nair",status:"Resolved"}
+  ],
+  incidents:[
+    {id:"HS-01",title:"Slip incident — Warehouse B",area:"Warehouse",severity:"Minor",status:"Action open"},
+    {id:"HS-02",title:"Fire drill completed",area:"All floors",severity:"Minor",status:"Complete"},
+    {id:"HS-03",title:"Ergonomic assessment",area:"Office L3",severity:"Moderate",status:"Follow-up"}
+  ],
+  compliance:[
+    {id:"LC-01",title:"Overtime policy update",category:"Labor law",due:"2026-04-30",status:"Compliant"},
+    {id:"LC-02",title:"Work permit renewals",category:"Immigration",due:"2026-10-15",status:"Action needed"},
+    {id:"LC-03",title:"Data protection audit",category:"Data privacy",due:"2026-09-01",status:"Upcoming"}
+  ],
+  succession:[
+    {id:"SC-01",role:"Head of Engineering",successor:"Marcus Bell",readiness:"Ready now",status:"On track"},
+    {id:"SC-02",role:"Head of Finance",successor:"— none identified —",readiness:"Gap",status:"At risk"},
+    {id:"SC-03",role:"Sales Director",successor:"Aisha Rahman",readiness:"1-2 yrs",status:"Developing"}
+  ],
+  surveys:[
+    {id:"EG-01",quarter:"Q1 2026",score:72,responses:84},
+    {id:"EG-02",quarter:"Q2 2026",score:75,responses:86},
+    {id:"EG-03",quarter:"Q3 2026",score:74,responses:82},
+    {id:"EG-04",quarter:"Q4 2026",score:81,responses:88}
+  ]
+};
+var HEADCOUNT=[{m:"Jan",a:210,p:205},{m:"Feb",a:214,p:212},{m:"Mar",a:221,p:220},{m:"Apr",a:228,p:230},{m:"May",a:236,p:240},{m:"Jun",a:244,p:252}];
+var STAGES=["Applied","Screened","Interview","Offer","Hired"];
+var RATING_ORDER=["Exceeds","Strong","Meets","Developing","Below"];
+var RATING_COLOR={Exceeds:C.green,Strong:C.teal,Meets:C.amber,Developing:C.plum,Below:C.red};
+
+/* ---------------------------- entity configs (for generic forms) ---------------------------- */
+var ENTITIES = {
+  employees:{label:"Employee",idpref:"E",fields:[
+    {key:"name",label:"Full name",required:true},
+    {key:"dept",label:"Department",type:"select",options:DEPTS,half:true},
+    {key:"role",label:"Job title",half:true},
+    {key:"status",label:"Status",type:"select",options:["Active","On Leave","Probation","Terminated"],half:true},
+    {key:"join",label:"Join date",type:"date",half:true},
+    {key:"salary",label:"Monthly salary ($)",type:"number",half:true},
+    {key:"email",label:"Email",half:true}
+  ]},
+  plans:{label:"Workforce plan",idpref:"HP",fields:[
+    {key:"title",label:"Plan title",required:true},
+    {key:"dept",label:"Department",type:"select",options:DEPTS,half:true},
+    {key:"add",label:"Headcount to add",type:"number",half:true},
+    {key:"budget",label:"Budget ($)",type:"number",half:true},
+    {key:"status",label:"Status",type:"select",options:["Draft","In review","Approved","At risk"],half:true}
+  ]},
+  jobs:{label:"Job opening",idpref:"J",fields:[
+    {key:"role",label:"Role title",required:true},
+    {key:"dept",label:"Department",type:"select",options:DEPTS,half:true},
+    {key:"stage",label:"Current stage",type:"select",options:STAGES,half:true},
+    {key:"days",label:"Days open",type:"number",half:true}
+  ]},
+  candidates:{label:"Candidate",idpref:"CN",fields:[
+    {key:"name",label:"Candidate name",required:true},
+    {key:"job",label:"Applying for",type:"select",options:function(){return DB.jobs.map(function(j){return j.role;});}},
+    {key:"stage",label:"Stage",type:"select",options:STAGES}
+  ]},
+  courses:{label:"Course",idpref:"TR",fields:[
+    {key:"name",label:"Course name",required:true},
+    {key:"cat",label:"Category",type:"select",options:["Leadership","Compliance","Technical","Soft skills","Onboarding"],half:true},
+    {key:"enrolled",label:"Enrolled",type:"number",half:true},
+    {key:"done",label:"Completion %",type:"number",half:true}
+  ]},
+  reviews:{label:"Review",idpref:"PR",fields:[
+    {key:"employee",label:"Employee",type:"select",options:function(){return DB.employees.map(function(e){return e.name;});},required:true},
+    {key:"period",label:"Review period",half:true},
+    {key:"rating",label:"Rating",type:"select",options:RATING_ORDER,half:true},
+    {key:"goals",label:"Goals achieved %",type:"number",half:true}
+  ]},
+  comp:{label:"Compensation item",idpref:"CB",fields:[
+    {key:"item",label:"Item",required:true},
+    {key:"type",label:"Type",type:"select",options:["Salary","Bonus","Benefit","Equity"],half:true},
+    {key:"amount",label:"Amount / % (0 if n/a)",type:"number",half:true},
+    {key:"status",label:"Status",type:"select",options:["Open","Pending","Complete"],half:true}
+  ]},
+  cases:{label:"Case",idpref:"ER",fields:[
+    {key:"title",label:"Case title",required:true},
+    {key:"type",label:"Type",type:"select",options:["Grievance","Mediation","Dispute","Feedback"],half:true},
+    {key:"status",label:"Status",type:"select",options:["Open","In progress","Resolved"],half:true},
+    {key:"employee",label:"Employee(s)",half:true},
+    {key:"assigned",label:"Assigned to",half:true}
+  ]},
+  incidents:{label:"Incident",idpref:"HS",fields:[
+    {key:"title",label:"Incident",required:true},
+    {key:"area",label:"Area / location",half:true},
+    {key:"severity",label:"Severity",type:"select",options:["Minor","Moderate","Major"],half:true},
+    {key:"status",label:"Status",type:"select",options:["Action open","Follow-up","Complete"],half:true}
+  ]},
+  compliance:{label:"Compliance item",idpref:"LC",fields:[
+    {key:"title",label:"Requirement",required:true},
+    {key:"category",label:"Category",type:"select",options:["Labor law","Immigration","Data privacy","Health & safety","Tax"],half:true},
+    {key:"due",label:"Due date",type:"date",half:true},
+    {key:"status",label:"Status",type:"select",options:["Compliant","Upcoming","Action needed"],half:true}
+  ]},
+  succession:{label:"Succession plan",idpref:"SC",fields:[
+    {key:"role",label:"Critical role",required:true},
+    {key:"successor",label:"Successor",half:true},
+    {key:"readiness",label:"Readiness",type:"select",options:["Ready now","1-2 yrs","Gap"],half:true},
+    {key:"status",label:"Status",type:"select",options:["On track","Developing","At risk"],half:true}
+  ]},
+  surveys:{label:"Survey result",idpref:"EG",fields:[
+    {key:"quarter",label:"Period",required:true,half:true},
+    {key:"score",label:"Engagement score",type:"number",half:true},
+    {key:"responses",label:"Response rate %",type:"number",half:true}
+  ]}
+};
+
+/* ---------------------------- utilities ---------------------------- */
+var _seq=5000;
+function uid(pref){ _seq++; return (pref||"ID")+"-"+_seq; }
+function clone(o){ var n={}; for(var k in o) n[k]=o[k]; return n; }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function money(n){ return "$"+Number(n||0).toLocaleString(); }
+function today(){ var d=new Date(); return d.toISOString().slice(0,10); }
+function byId(arr,id){ for(var i=0;i<arr.length;i++) if(arr[i].id===id) return arr[i]; return null; }
+function toneFor(s){ s=(s||"").toLowerCase();
+  if(/approved|complete|resolved|compliant|active|ready now|on track|paid/.test(s)) return "green";
+  if(/at risk|action needed|below|gap|terminated|major/.test(s)) return "red";
+  if(/probation|interview|developing|1-2/.test(s)) return "blue";
+  return "amber";
+}
+
+/* ---------------------------- html helpers ---------------------------- */
+function kpi(lab,val,accent,delta,up){
+  var d = delta ? '<div class="delta" style="color:'+(up?C.green:C.red)+'">'+icon(up?"up":"down",14,up?C.green:C.red)+delta+' <span>vs last period</span></div>' : '';
+  return '<div class="card kpi"><div class="row"><div><div class="lab">'+lab+'</div><div class="val">'+val+'</div></div><div class="dot" style="background:'+accent+'"></div></div>'+d+'</div>';
+}
+function pill(txt,tone){ return '<span class="pill '+(tone||toneFor(txt))+'">'+esc(txt)+'</span>'; }
+function sectitle(eyebrow,title,actions){ return '<div class="sectitle"><div><div class="eyebrow">'+eyebrow+'</div><h1 class="page">'+title+'</h1></div>'+(actions||"")+'</div>'; }
+function modHead(m,actions){ return sectitle('Function '+(m.n==="—"?"":m.n), m.name, actions||"")+'<p class="lead">'+m.sub+'.</p>'; }
+function addBtn(store,label){ return '<button class="btn primary" data-action="add" data-store="'+store+'">'+icon("plus",15,"#fff")+(label||"Add")+'</button>'; }
+function rowActions(store,id){ return '<div class="rowbtns"><button class="iconbtn" data-action="edit" data-store="'+store+'" data-id="'+id+'" title="Edit">'+icon("edit",15)+'</button><button class="iconbtn danger" data-action="del" data-store="'+store+'" data-id="'+id+'" title="Delete">'+icon("trash",15)+'</button></div>'; }
+function emptyRow(cols,msg){ return '<tr><td colspan="'+cols+'"><div class="empty">'+msg+'</div></td></tr>'; }
+
+/* ---------------------------- charts (read live DB) ---------------------------- */
+function deptCounts(){ var map={},out=[]; DB.employees.forEach(function(e){map[e.dept]=(map[e.dept]||0)+1;});
+  var colors=[C.navy,C.amber,C.teal,C.plum,"#9AA7BD","#5B7DB1","#B5843B"]; var i=0;
+  for(var k in map){ out.push({name:k,v:map[k],c:colors[i%colors.length]}); i++; } return out; }
+function pipelineCounts(){ return STAGES.map(function(s){ return {s:s,n:DB.candidates.filter(function(c){return c.stage===s;}).length}; }); }
+function ratingCounts(){ return RATING_ORDER.map(function(r){ return {r:r,n:DB.reviews.filter(function(x){return x.rating===r;}).length,c:RATING_COLOR[r]}; }); }
+
+function areaChart(el){
+  var w=el.clientWidth||520,h=230,pl=34,pr=10,pt=10,pb=26,iw=w-pl-pr,ih=h-pt-pb,min=190,max=260;
+  function X(i){return pl+iw*(i/(HEADCOUNT.length-1));} function Y(v){return pt+ih*(1-(v-min)/(max-min));}
+  var gy="",gx="";
+  [190,210,230,250].forEach(function(t){var y=Y(t);gy+='<line x1="'+pl+'" y1="'+y+'" x2="'+(w-pr)+'" y2="'+y+'" stroke="'+C.line+'" stroke-dasharray="3 3"/><text x="'+(pl-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="'+C.muted+'">'+t+'</text>';});
+  var aPts="",aArea="M"+X(0)+" "+(h-pb),pPts="";
+  for(var i=0;i<HEADCOUNT.length;i++){ aPts+=X(i)+","+Y(HEADCOUNT[i].a)+" "; aArea+=" L"+X(i)+" "+Y(HEADCOUNT[i].a); pPts+=X(i)+","+Y(HEADCOUNT[i].p)+" ";
+    gx+='<text x="'+X(i)+'" y="'+(h-8)+'" text-anchor="middle" font-size="11" fill="'+C.muted+'">'+HEADCOUNT[i].m+'</text>'; }
+  aArea+=" L"+X(HEADCOUNT.length-1)+" "+(h-pb)+" Z";
+  el.innerHTML='<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+C.navy+'" stop-opacity="0.22"/><stop offset="100%" stop-color="'+C.navy+'" stop-opacity="0"/></linearGradient></defs>'+gy+gx+
+    '<path d="'+aArea+'" fill="url(#ga)"/><polyline points="'+aPts+'" fill="none" stroke="'+C.navy+'" stroke-width="2.5"/><polyline points="'+pPts+'" fill="none" stroke="'+C.amber+'" stroke-width="2" stroke-dasharray="5 4"/></svg>'+
+    '<div class="legend" style="grid-template-columns:auto auto;justify-content:start;gap:16px;margin-top:8px"><div><span class="sw" style="background:'+C.navy+'"></span>Actual</div><div><span class="sw" style="background:'+C.amber+'"></span>Plan</div></div>';
+}
+function donut(el){
+  var data=deptCounts(), w=el.clientWidth||280,h=210,cx=w/2,cy=h/2,r=82,ir=52,total=0;
+  data.forEach(function(d){total+=d.v;}); if(total===0){el.innerHTML='<div class="empty">No employees yet</div>';return;}
+  var ang=-Math.PI/2,paths="";
+  for(var i=0;i<data.length;i++){ var frac=data[i].v/total,a2=ang+frac*Math.PI*2;
+    var x1=cx+r*Math.cos(ang),y1=cy+r*Math.sin(ang),x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+    var xi1=cx+ir*Math.cos(a2),yi1=cy+ir*Math.sin(a2),xi2=cx+ir*Math.cos(ang),yi2=cy+ir*Math.sin(ang),large=frac>0.5?1:0;
+    paths+='<path d="M'+x1+' '+y1+' A'+r+' '+r+' 0 '+large+' 1 '+x2+' '+y2+' L'+xi1+' '+yi1+' A'+ir+' '+ir+' 0 '+large+' 0 '+xi2+' '+yi2+' Z" fill="'+data[i].c+'"/>'; ang=a2; }
+  var leg=""; data.forEach(function(d){leg+='<div><span class="sw" style="background:'+d.c+'"></span>'+d.name+' ('+d.v+')</div>';});
+  el.innerHTML='<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+paths+
+    '<text x="'+cx+'" y="'+(cy-2)+'" text-anchor="middle" font-size="26" font-weight="700" fill="'+C.ink+'" font-family="Georgia,serif">'+total+'</text>'+
+    '<text x="'+cx+'" y="'+(cy+16)+'" text-anchor="middle" font-size="11" fill="'+C.muted+'">employees</text></svg><div class="legend">'+leg+'</div>';
+}
+function vbars(el){
+  var data=pipelineCounts(),w=el.clientWidth||480,h=230,pl=34,pr=10,pt=14,pb=28,iw=w-pl-pr,ih=h-pt-pb;
+  var max=Math.max(1,Math.max.apply(null,data.map(function(d){return d.n;})))*1.25,gap=iw/data.length,bw=gap*0.5,bars="",lbls="",grid="";
+  var step=Math.ceil(max/4);
+  for(var g=0;g<=4;g++){var tv=g*step;var y=pt+ih*(1-tv/max);grid+='<line x1="'+pl+'" y1="'+y+'" x2="'+(w-pr)+'" y2="'+y+'" stroke="'+C.line+'" stroke-dasharray="3 3"/><text x="'+(pl-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="'+C.muted+'">'+tv+'</text>';}
+  for(var i=0;i<data.length;i++){ var x=pl+gap*i+(gap-bw)/2,bh=ih*(data[i].n/max),y=pt+ih-bh;
+    bars+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="5" fill="'+C.navy+'"/><text x="'+(x+bw/2)+'" y="'+(y-6)+'" text-anchor="middle" font-size="11" font-weight="600" fill="'+C.ink+'">'+data[i].n+'</text>';
+    lbls+='<text x="'+(x+bw/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="10.5" fill="'+C.muted+'">'+data[i].s+'</text>'; }
+  el.innerHTML='<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+grid+bars+lbls+'</svg>';
+}
+function hbars(el){
+  var data=ratingCounts(),w=el.clientWidth||520,h=260,pl=88,pr=34,pt=6,pb=6,iw=w-pl-pr,ih=h-pt-pb;
+  var max=Math.max(1,Math.max.apply(null,data.map(function(d){return d.n;})))*1.2,gap=ih/data.length,bh=gap*0.58,bars="";
+  for(var i=0;i<data.length;i++){ var y=pt+gap*i+(gap-bh)/2,bw=iw*(data[i].n/max);
+    bars+='<text x="'+(pl-8)+'" y="'+(y+bh/2+4)+'" text-anchor="end" font-size="12" fill="'+C.ink+'">'+data[i].r+'</text>';
+    bars+='<rect x="'+pl+'" y="'+y+'" width="'+Math.max(bw,2)+'" height="'+bh+'" rx="5" fill="'+data[i].c+'"/>';
+    bars+='<text x="'+(pl+Math.max(bw,2)+6)+'" y="'+(y+bh/2+4)+'" font-size="12" font-weight="600" fill="'+C.muted+'">'+data[i].n+'</text>'; }
+  el.innerHTML='<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+bars+'</svg>';
+}
+function lineChart(el){
+  var data=DB.surveys,w=el.clientWidth||520,h=240,pl=34,pr=14,pt=12,pb=26,iw=w-pl-pr,ih=h-pt-pb,min=50,max=100;
+  if(data.length===0){el.innerHTML='<div class="empty">No survey data</div>';return;}
+  function X(i){return pl+iw*(i/Math.max(1,data.length-1));} function Y(v){return pt+ih*(1-(v-min)/(max-min));}
+  var grid="",pts="",dots="",xl="";
+  [50,65,80,95].forEach(function(t){var y=Y(t);grid+='<line x1="'+pl+'" y1="'+y+'" x2="'+(w-pr)+'" y2="'+y+'" stroke="'+C.line+'" stroke-dasharray="3 3"/><text x="'+(pl-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="'+C.muted+'">'+t+'</text>';});
+  for(var i=0;i<data.length;i++){ pts+=X(i)+","+Y(data[i].score)+" "; dots+='<circle cx="'+X(i)+'" cy="'+Y(data[i].score)+'" r="5" fill="'+C.navy+'"/><text x="'+X(i)+'" y="'+(Y(data[i].score)-10)+'" text-anchor="middle" font-size="11" font-weight="600" fill="'+C.ink+'">'+data[i].score+'</text>';
+    xl+='<text x="'+X(i)+'" y="'+(h-8)+'" text-anchor="middle" font-size="11" fill="'+C.muted+'">'+data[i].quarter+'</text>'; }
+  el.innerHTML='<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+grid+xl+'<polyline points="'+pts+'" fill="none" stroke="'+C.amber+'" stroke-width="3"/>'+dots+'</svg>';
+}
+
+/* ================================================================
+   VIEWS
+   ================================================================ */
+function vDashboard(){
+  var emps=DB.employees, total=emps.length;
+  var active=emps.filter(function(e){return e.status==="Active";}).length;
+  var openRoles=DB.jobs.filter(function(j){return j.stage!=="Hired";}).length;
+  var monthly=emps.filter(function(e){return e.status!=="Terminated";}).reduce(function(s,e){return s+(+e.salary||0);},0);
+  var tiles="";
+  for(var i=1;i<MODULES.length;i++){var m=MODULES[i];
+    tiles+='<button class="tile" data-action="go" data-go="'+m.id+'"><span class="ic">'+icon(m.ic,17,C.amber)+'</span><span><span class="nm">'+m.name+'</span><span class="fn">Function '+m.n+'</span></span></button>';}
+  return sectitle("Human Resource Management","HRMIS Overview",'<button class="btn" data-action="export">'+icon("download",15)+'Export report</button>')+
+    '<div class="kpis">'+kpi("Total headcount",total,C.navy,"+"+ (total-236),true)+kpi("Active staff",active,C.green)+kpi("Open positions",openRoles,C.amber)+kpi("Monthly payroll",money(monthly),C.plum)+'</div>'+
+    '<div class="grid2"><div class="card" style="padding:20px"><div class="ctitle">Headcount: plan vs actual</div><div class="csub">Workforce growth against the HR plan</div><div data-chart="area"></div></div>'+
+    '<div class="card" style="padding:20px"><div class="ctitle">Workforce by department</div><div class="csub">Live from employee records</div><div data-chart="donut"></div></div></div>'+
+    '<div class="card" style="padding:20px"><div class="row" style="align-items:center;margin-bottom:6px"><div class="ctitle" style="margin:0">Jump into a module</div><span class="csub" style="margin:0">The 12 HR functions</span></div><div class="tiles">'+tiles+'</div></div>';
+}
+
+function vRecords(){
+  var m=mod("records");
+  return modHead(m,addBtn("employees","Add employee"))+
+    '<div class="kpis">'+
+      kpi("Total employees",DB.employees.length,C.navy)+
+      kpi("Active",DB.employees.filter(function(e){return e.status==="Active";}).length,C.green)+
+      kpi("On leave",DB.employees.filter(function(e){return e.status==="On Leave";}).length,C.amber)+
+      kpi("Probation",DB.employees.filter(function(e){return e.status==="Probation";}).length,C.teal)+
+    '</div>'+
+    '<div class="card"><div class="filterbar">'+
+      '<div class="searchbar">'+icon("search",16,C.muted)+'<input id="empSearch" placeholder="Search name, role, ID…"></div>'+
+      '<select class="fsel" id="fDept"><option value="">All departments</option>'+DEPTS.map(function(d){return '<option>'+d+'</option>';}).join("")+'</select>'+
+      '<select class="fsel" id="fStatus"><option value="">All statuses</option><option>Active</option><option>On Leave</option><option>Probation</option><option>Terminated</option></select>'+
+    '</div><div id="empTable"></div></div>';
+}
+function empRows(){
+  var q=(document.getElementById("empSearch")||{}).value||"";
+  var dep=(document.getElementById("fDept")||{}).value||"";
+  var st=(document.getElementById("fStatus")||{}).value||"";
+  q=q.toLowerCase();
+  var list=DB.employees.filter(function(e){
+    var match=(e.name+e.dept+e.role+e.id).toLowerCase().indexOf(q)>=0;
+    return match && (!dep||e.dept===dep) && (!st||e.status===st);
+  });
+  var body=list.length? list.map(function(e){
+    return '<tr><td class="mono">'+e.id+'</td><td style="font-weight:600">'+esc(e.name)+'<div style="font-size:11.5px;color:'+C.muted+';font-weight:400">'+esc(e.email||"")+'</div></td><td>'+esc(e.dept)+'</td><td>'+esc(e.role)+'</td><td>'+esc(e.join)+'</td><td>'+money(e.salary)+'</td><td>'+pill(e.status)+'</td><td>'+rowActions("employees",e.id)+'</td></tr>';
+  }).join("") : emptyRow(8,"No employees match your filters.");
+  return '<table><thead><tr><th>ID</th><th>Name</th><th>Dept</th><th>Role</th><th>Joined</th><th>Salary</th><th>Status</th><th></th></tr></thead><tbody>'+body+'</tbody></table>';
+}
+
+function vPlanning(){
+  var m=mod("planning");
+  var totalAdd=DB.plans.reduce(function(s,p){return s+(+p.add||0);},0);
+  var budget=DB.plans.reduce(function(s,p){return s+(+p.budget||0);},0);
+  var rows=DB.plans.length?DB.plans.map(function(p){
+    return '<tr><td style="font-weight:600">'+esc(p.title)+'</td><td>'+esc(p.dept)+'</td><td>+'+p.add+'</td><td>'+money(p.budget)+'</td><td>'+pill(p.status)+'</td><td>'+rowActions("plans",p.id)+'</td></tr>';
+  }).join(""):emptyRow(6,"No workforce plans yet. Add one to start planning.");
+  return modHead(m,addBtn("plans","New plan"))+
+    '<div class="kpis">'+kpi("Planned new roles",totalAdd,C.navy)+kpi("Total budget",money(budget),C.amber)+kpi("Approved plans",DB.plans.filter(function(p){return p.status==="Approved";}).length,C.green)+kpi("At risk",DB.plans.filter(function(p){return p.status==="At risk";}).length,C.red)+'</div>'+
+    '<div class="card"><div class="sechead"><span class="t">Workforce plans</span></div><table><thead><tr><th>Plan</th><th>Dept</th><th>Add</th><th>Budget</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function vRecruitment(){
+  var m=mod("recruitment");
+  var jobRows=DB.jobs.length?DB.jobs.map(function(j){
+    return '<tr><td style="font-weight:600">'+esc(j.role)+'</td><td>'+esc(j.dept)+'</td><td>'+DB.candidates.filter(function(c){return c.job===j.role;}).length+'</td><td>'+pill(j.stage)+'</td><td>'+j.days+'d</td><td>'+rowActions("jobs",j.id)+'</td></tr>';
+  }).join(""):emptyRow(6,"No openings yet.");
+  var candRows=DB.candidates.length?DB.candidates.map(function(c){
+    var adv=c.stage!=="Hired"?'<button class="iconbtn" data-action="advance" data-id="'+c.id+'" title="Advance stage">'+icon("arrowR",15)+'</button>':'';
+    return '<tr><td style="font-weight:600">'+esc(c.name)+'</td><td>'+esc(c.job)+'</td><td>'+pill(c.stage)+'</td><td><div class="rowbtns">'+adv+'<button class="iconbtn danger" data-action="del" data-store="candidates" data-id="'+c.id+'" title="Remove">'+icon("trash",15)+'</button></div></td></tr>';
+  }).join(""):emptyRow(4,"No candidates yet.");
+  var hires=DB.candidates.filter(function(c){return c.stage==="Hired";}).length;
+  return modHead(m,'<div class="actions">'+addBtn("jobs","New opening")+addBtn("candidates","Add candidate")+'</div>')+
+    '<div class="kpis">'+kpi("Open roles",DB.jobs.filter(function(j){return j.stage!=="Hired";}).length,C.navy)+kpi("Candidates",DB.candidates.length,C.amber)+kpi("In interview",DB.candidates.filter(function(c){return c.stage==="Interview";}).length,C.teal)+kpi("Hired",hires,C.green)+'</div>'+
+    '<div class="grid11"><div class="card" style="padding:20px"><div class="ctitle" style="margin-bottom:2px">Hiring pipeline</div><div class="csub">Candidates by stage — advance them below to see this update</div><div data-chart="vbars"></div></div>'+
+    '<div class="card"><div class="sechead"><span class="t">Candidates</span></div><div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Role</th><th>Stage</th><th></th></tr></thead><tbody>'+candRows+'</tbody></table></div></div></div>'+
+    '<div class="card" style="margin-top:16px"><div class="sechead"><span class="t">Active openings</span></div><table><thead><tr><th>Role</th><th>Dept</th><th>Applicants</th><th>Stage</th><th>Open</th><th></th></tr></thead><tbody>'+jobRows+'</tbody></table></div>';
+}
+
+function vTraining(){
+  var m=mod("training");
+  var pr=DB.courses.length?DB.courses.map(function(c){
+    return '<div style="margin-bottom:18px"><div class="row" style="margin-bottom:7px;font-size:13.5px"><span style="font-weight:600">'+esc(c.name)+' '+pill(c.cat,"neutral")+'</span><span style="color:'+C.muted+'">'+c.enrolled+' enrolled · '+c.done+'% '+'<button class="iconbtn" style="display:inline-grid;vertical-align:middle;margin-left:6px" data-action="edit" data-store="courses" data-id="'+c.id+'">'+icon("edit",13)+'</button><button class="iconbtn danger" style="display:inline-grid;vertical-align:middle" data-action="del" data-store="courses" data-id="'+c.id+'">'+icon("trash",13)+'</button></span></div><div class="bar-track"><div class="bar-fill" style="width:'+Math.min(100,c.done)+'%;background:'+C.navy+'"></div></div></div>';
+  }).join(""):'<div class="empty">No courses yet. Add one to get started.</div>';
+  var avg=DB.courses.length?Math.round(DB.courses.reduce(function(s,c){return s+c.done;},0)/DB.courses.length):0;
+  var enr=DB.courses.reduce(function(s,c){return s+c.enrolled;},0);
+  return modHead(m,addBtn("courses","New course"))+
+    '<div class="kpis">'+kpi("Active courses",DB.courses.length,C.navy)+kpi("Total enrollments",enr,C.amber)+kpi("Avg. completion",avg+"%",C.green)+kpi("Categories",Object.keys(DB.courses.reduce(function(a,c){a[c.cat]=1;return a;},{})).length,C.teal)+'</div>'+
+    '<div class="card" style="padding:20px"><div class="ctitle" style="margin-bottom:16px">Course completion</div>'+pr+'</div>';
+}
+
+function vPerformance(){
+  var m=mod("performance");
+  var revRows=DB.reviews.length?DB.reviews.map(function(r){
+    return '<tr><td style="font-weight:600">'+esc(r.employee)+'</td><td>'+esc(r.period||"")+'</td><td>'+pill(r.rating,r.rating==="Below"?"red":r.rating==="Developing"?"blue":r.rating==="Meets"?"amber":"green")+'</td><td>'+r.goals+'%</td><td>'+rowActions("reviews",r.id)+'</td></tr>';
+  }).join(""):emptyRow(5,"No reviews recorded yet.");
+  var done=DB.reviews.length, avg=done?(DB.reviews.reduce(function(s,r){return s+r.goals;},0)/done).toFixed(0):0;
+  return modHead(m,addBtn("reviews","New review"))+
+    '<div class="kpis">'+kpi("Reviews recorded",done,C.navy)+kpi("Avg. goal attainment",avg+"%",C.amber)+kpi("Top performers",DB.reviews.filter(function(r){return r.rating==="Exceeds";}).length,C.green)+kpi("Need support",DB.reviews.filter(function(r){return r.rating==="Below"||r.rating==="Developing";}).length,C.red)+'</div>'+
+    '<div class="grid11"><div class="card" style="padding:20px"><div class="ctitle" style="margin-bottom:2px">Rating distribution</div><div class="csub">Updates as you add reviews</div><div data-chart="hbars"></div></div>'+
+    '<div class="card"><div class="sechead"><span class="t">Performance reviews</span></div><div style="overflow-x:auto"><table><thead><tr><th>Employee</th><th>Period</th><th>Rating</th><th>Goals</th><th></th></tr></thead><tbody>'+revRows+'</tbody></table></div></div></div>';
+}
+
+function vCompensation(){
+  var m=mod("compensation");
+  var rows=DB.comp.length?DB.comp.map(function(c){
+    var amt=c.type==="Salary"?(c.amount+"%"):(c.amount?money(c.amount):"—");
+    return '<tr><td style="font-weight:600">'+esc(c.item)+'</td><td>'+pill(c.type,"neutral")+'</td><td>'+amt+'</td><td>'+pill(c.status)+'</td><td>'+rowActions("comp",c.id)+'</td></tr>';
+  }).join(""):emptyRow(5,"No compensation items yet.");
+  var avgSal=DB.employees.length?Math.round(DB.employees.reduce(function(s,e){return s+(+e.salary||0);},0)/DB.employees.length):0;
+  return modHead(m,addBtn("comp","New item"))+
+    '<div class="kpis">'+kpi("Avg. salary",money(avgSal),C.navy)+kpi("Comp items",DB.comp.length,C.amber)+kpi("Completed",DB.comp.filter(function(c){return c.status==="Complete";}).length,C.green)+kpi("Pending",DB.comp.filter(function(c){return c.status!=="Complete";}).length,C.teal)+'</div>'+
+    '<div class="card"><div class="sechead"><span class="t">Compensation & benefits</span></div><table><thead><tr><th>Item</th><th>Type</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function vPayroll(){
+  var m=mod("payroll");
+  var active=DB.employees.filter(function(e){return e.status==="Active"||e.status==="Probation";});
+  var gross=active.reduce(function(s,e){return s+(+e.salary||0);},0), ded=Math.round(gross*0.19);
+  var runRows=DB.payrolls.length?DB.payrolls.map(function(r){
+    var approve=r.status!=="Approved & paid"?'<button class="btn primary" data-action="approve-payroll" data-id="'+r.id+'">'+icon("check",15,"#fff")+'Approve & release</button>':pill("Paid","green");
+    return '<tr><td style="font-weight:600">'+esc(r.month)+'</td><td>'+r.count+'</td><td>'+money(r.gross)+'</td><td style="color:'+C.red+'">−'+money(r.ded)+'</td><td>'+money(r.gross-r.ded)+'</td><td>'+approve+'</td></tr>';
+  }).join(""):emptyRow(6,"No payroll runs yet. Run payroll for this month below.");
+  var slipRows=active.slice(0,8).map(function(e){var d=Math.round(e.salary*0.19);
+    return '<tr><td style="font-weight:600">'+esc(e.name)+'</td><td>'+esc(e.dept)+'</td><td>'+money(e.salary)+'</td><td style="color:'+C.red+'">−'+money(d)+'</td><td style="font-weight:700">'+money(e.salary-d)+'</td></tr>';}).join("");
+  return modHead(m,'<button class="btn primary" data-action="run-payroll">'+icon("play",15,"#fff")+'Run payroll ('+active.length+')</button>')+
+    '<div class="kpis">'+kpi("Est. gross (current)",money(gross),C.navy)+kpi("Payable staff",active.length,C.green)+kpi("Deductions & tax",money(ded),C.amber)+kpi("Est. net",money(gross-ded),C.teal)+'</div>'+
+    '<div class="card" style="margin-bottom:16px"><div class="sechead"><span class="t">Payroll runs</span><span class="csub" style="margin:0">Run, then approve to release</span></div><div style="overflow-x:auto"><table><thead><tr><th>Period</th><th>Staff</th><th>Gross</th><th>Deductions</th><th>Net</th><th>Action</th></tr></thead><tbody>'+runRows+'</tbody></table></div></div>'+
+    '<div class="card"><div class="sechead"><span class="t">Payslip preview</span><span class="csub" style="margin:0">Calculated live from active staff · 19% deductions</span></div><div style="overflow-x:auto"><table><thead><tr><th>Employee</th><th>Dept</th><th>Gross</th><th>Deductions</th><th>Net pay</th></tr></thead><tbody>'+slipRows+'</tbody></table></div></div>';
+}
+
+function vGenericTable(id,storeKey,kpiSpecs,cols,rowFn,title){
+  var m=mod(id), arr=DB[storeKey];
+  var k=kpiSpecs.map(function(s){return kpi(s[0],s[1](),s[2]);}).join("");
+  var rows=arr.length?arr.map(rowFn).join(""):emptyRow(cols.length+1,"Nothing here yet. Use the button above to add the first record.");
+  var head=cols.map(function(c){return '<th>'+c+'</th>';}).join("")+'<th></th>';
+  return modHead(m,addBtn(storeKey,"Add"))+'<div class="kpis">'+k+'</div>'+
+    '<div class="card"><div class="sechead"><span class="t">'+title+'</span></div><div style="overflow-x:auto"><table><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+function vRelations(){ return vGenericTable("relations","cases",
+  [["Open cases",function(){return DB.cases.filter(function(c){return c.status==="Open";}).length;},C.navy],
+   ["In progress",function(){return DB.cases.filter(function(c){return c.status==="In progress";}).length;},C.amber],
+   ["Resolved",function(){return DB.cases.filter(function(c){return c.status==="Resolved";}).length;},C.green],
+   ["Total",function(){return DB.cases.length;},C.teal]],
+  ["Case","Type","Employee(s)","Assigned","Status"],
+  function(c){return '<tr><td style="font-weight:600">'+esc(c.title)+'</td><td>'+pill(c.type,"neutral")+'</td><td>'+esc(c.employee||"")+'</td><td>'+esc(c.assigned||"")+'</td><td>'+pill(c.status)+'</td><td>'+rowActions("cases",c.id)+'</td></tr>';},
+  "Employee relations cases"); }
+
+function vSafety(){ return vGenericTable("safety","incidents",
+  [["Total incidents",function(){return DB.incidents.length;},C.navy],
+   ["Open actions",function(){return DB.incidents.filter(function(i){return i.status==="Action open";}).length;},C.amber],
+   ["Follow-ups",function(){return DB.incidents.filter(function(i){return i.status==="Follow-up";}).length;},C.teal],
+   ["Closed",function(){return DB.incidents.filter(function(i){return i.status==="Complete";}).length;},C.green]],
+  ["Incident","Area","Severity","Status"],
+  function(i){return '<tr><td style="font-weight:600">'+esc(i.title)+'</td><td>'+esc(i.area||"")+'</td><td>'+pill(i.severity,i.severity==="Major"?"red":i.severity==="Moderate"?"amber":"neutral")+'</td><td>'+pill(i.status)+'</td><td>'+rowActions("incidents",i.id)+'</td></tr>';},
+  "Health & safety log"); }
+
+function vCompliance(){ return vGenericTable("compliance","compliance",
+  [["Requirements",function(){return DB.compliance.length;},C.navy],
+   ["Compliant",function(){return DB.compliance.filter(function(c){return c.status==="Compliant";}).length;},C.green],
+   ["Action needed",function(){return DB.compliance.filter(function(c){return c.status==="Action needed";}).length;},C.red],
+   ["Upcoming",function(){return DB.compliance.filter(function(c){return c.status==="Upcoming";}).length;},C.amber]],
+  ["Requirement","Category","Due","Status"],
+  function(c){return '<tr><td style="font-weight:600">'+esc(c.title)+'</td><td>'+pill(c.category,"neutral")+'</td><td>'+esc(c.due||"")+'</td><td>'+pill(c.status)+'</td><td>'+rowActions("compliance",c.id)+'</td></tr>';},
+  "Compliance checklist"); }
+
+function vCareer(){ return vGenericTable("career","succession",
+  [["Succession plans",function(){return DB.succession.length;},C.navy],
+   ["Ready now",function(){return DB.succession.filter(function(s){return s.readiness==="Ready now";}).length;},C.green],
+   ["Gaps",function(){return DB.succession.filter(function(s){return s.readiness==="Gap";}).length;},C.red],
+   ["Developing",function(){return DB.succession.filter(function(s){return s.status==="Developing";}).length;},C.teal]],
+  ["Critical role","Successor","Readiness","Status"],
+  function(s){return '<tr><td style="font-weight:600">'+esc(s.role)+'</td><td>'+esc(s.successor||"")+'</td><td>'+pill(s.readiness,s.readiness==="Ready now"?"green":s.readiness==="Gap"?"red":"blue")+'</td><td>'+pill(s.status)+'</td><td>'+rowActions("succession",s.id)+'</td></tr>';},
+  "Career & succession"); }
+
+function vEngagement(){
+  var m=mod("engagement");
+  var latest=DB.surveys.length?DB.surveys[DB.surveys.length-1]:{score:0,responses:0};
+  var rows=DB.surveys.length?DB.surveys.map(function(s){
+    return '<tr><td style="font-weight:600">'+esc(s.quarter)+'</td><td>'+s.score+'</td><td>'+s.responses+'%</td><td>'+rowActions("surveys",s.id)+'</td></tr>';
+  }).join(""):emptyRow(4,"No survey data yet.");
+  return modHead(m,addBtn("surveys","Add survey"))+
+    '<div class="kpis">'+kpi("Latest score",latest.score,C.navy,"+"+ (DB.surveys.length>1?(latest.score-DB.surveys[DB.surveys.length-2].score):0),true)+kpi("Response rate",latest.responses+"%",C.green)+kpi("Surveys run",DB.surveys.length,C.amber)+kpi("Trend",DB.surveys.length>1&&latest.score>=DB.surveys[0].score?"Up":"Flat",C.teal)+'</div>'+
+    '<div class="grid11"><div class="card" style="padding:20px"><div class="ctitle" style="margin-bottom:2px">Engagement trend</div><div class="csub">Add survey results to extend the line</div><div data-chart="line"></div></div>'+
+    '<div class="card"><div class="sechead"><span class="t">Survey history</span></div><table><thead><tr><th>Period</th><th>Score</th><th>Response</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* ================================================================
+   FORMS / MODALS / TOAST
+   ================================================================ */
+function toast(msg,tone){
+  var t=document.createElement("div"); t.className="toast "+(tone||"green");
+  t.innerHTML=icon(tone==="red"?"alert":"check",16,"#fff")+"<span>"+esc(msg)+"</span>";
+  document.getElementById("toasts").appendChild(t);
+  setTimeout(function(){t.classList.add("show");},10);
+  setTimeout(function(){t.classList.remove("show");setTimeout(function(){t.remove();},300);},2600);
+}
+function modal(title,body,foot){
+  var wrap=document.createElement("div"); wrap.className="modal-overlay";
+  wrap.innerHTML='<div class="modal"><div class="modal-head"><h3>'+esc(title)+'</h3><button class="modal-x">'+icon("x",20)+'</button></div><div class="modal-body">'+body+'</div>'+(foot?'<div class="modal-foot">'+foot+'</div>':'')+'</div>';
+  document.body.appendChild(wrap);
+  function close(){ wrap.remove(); }
+  wrap.querySelector(".modal-x").onclick=close;
+  wrap.addEventListener("click",function(e){ if(e.target===wrap) close(); });
+  return {el:wrap,close:close};
+}
+function fieldHTML(f){
+  var opts=typeof f.options==="function"?f.options():f.options;
+  var val=f.value!=null?f.value:"";
+  var inner;
+  if(f.type==="select"){
+    inner='<select name="'+f.key+'">'+opts.map(function(o){return '<option'+(String(o)===String(val)?' selected':'')+'>'+esc(o)+'</option>';}).join("")+'</select>';
+  } else if(f.type==="textarea"){
+    inner='<textarea name="'+f.key+'" rows="3">'+esc(val)+'</textarea>';
+  } else {
+    inner='<input name="'+f.key+'" type="'+(f.type||"text")+'"'+(f.type==="number"?' step="any"':'')+' value="'+esc(val)+'">';
+  }
+  return '<label class="field"><span>'+esc(f.label)+(f.required?' *':'')+'</span>'+inner+'</label>';
+}
+function openForm(opts){
+  var half=opts.fields.filter(function(f){return f.half;}), full=opts.fields.filter(function(f){return !f.half;});
+  var body='<form id="theForm">';
+  full.forEach(function(f){ if(f.half) return; });
+  // render in order but wrap consecutive half fields in a grid
+  var i=0, fs=opts.fields;
+  while(i<fs.length){
+    if(fs[i].half){
+      body+='<div class="grid-fields">';
+      while(i<fs.length && fs[i].half){ body+=fieldHTML(fs[i]); i++; }
+      body+='</div>';
+    } else { body+=fieldHTML(fs[i]); i++; }
+  }
+  body+='</form>';
+  var foot='<button class="btn" data-cancel>Cancel</button><button class="btn primary" data-save>'+(opts.submitLabel||"Save")+'</button>';
+  var m=modal(opts.title,body,foot);
+  m.el.querySelector("[data-cancel]").onclick=m.close;
+  m.el.querySelector("[data-save]").onclick=function(){
+    var form=m.el.querySelector("#theForm"), vals={};
+    opts.fields.forEach(function(f){
+      var node=form.elements[f.key]; var v=node?node.value:"";
+      if(f.type==="number") v=(v===""?0:parseFloat(v)||0);
+      vals[f.key]=v;
+    });
+    var miss=opts.fields.filter(function(f){return f.required && (vals[f.key]===""||vals[f.key]==null);});
+    if(miss.length){ toast("Please fill: "+miss.map(function(f){return f.label;}).join(", "),"red"); return; }
+    opts.onSubmit(vals); m.close();
+  };
+  // focus first field
+  var first=m.el.querySelector("input,select,textarea"); if(first) first.focus();
+}
+function confirmDialog(msg,onYes){
+  var m=modal("Please confirm",'<p style="margin:0;color:'+C.ink+';font-size:14px;line-height:1.5">'+esc(msg)+'</p>',
+    '<button class="btn" data-no>Cancel</button><button class="btn primary" data-yes style="background:'+C.red+'">Delete</button>');
+  m.el.querySelector("[data-no]").onclick=m.close;
+  m.el.querySelector("[data-yes]").onclick=function(){ onYes(); m.close(); };
+}
+
+/* ---- generic CRUD ---- */
+function addEntity(store){
+  var cfg=ENTITIES[store]; if(!cfg){ toast("Not available","red"); return; }
+  openForm({title:"Add "+cfg.label, submitLabel:"Add "+cfg.label,
+    fields:cfg.fields.map(function(f){return clone(f);}),
+    onSubmit:function(v){ v.id=uid(cfg.idpref); DB[store].unshift(v); toast(cfg.label+" added"); renderView(); }});
+}
+function editEntity(store,id){
+  var cfg=ENTITIES[store], item=byId(DB[store],id); if(!item) return;
+  openForm({title:"Edit "+cfg.label, submitLabel:"Save changes",
+    fields:cfg.fields.map(function(f){var c=clone(f); c.value=item[f.key]; return c;}),
+    onSubmit:function(v){ for(var k in v) item[k]=v[k]; toast(cfg.label+" updated"); renderView(); }});
+}
+function delEntity(store,id){
+  var cfg=ENTITIES[store];
+  confirmDialog("Delete this "+cfg.label.toLowerCase()+"? This can't be undone.",function(){
+    DB[store]=DB[store].filter(function(x){return x.id!==id;}); toast(cfg.label+" deleted","red"); renderView();
+  });
+}
+function advanceCandidate(id){
+  var c=byId(DB.candidates,id); if(!c) return;
+  var i=STAGES.indexOf(c.stage);
+  if(i<STAGES.length-1){ c.stage=STAGES[i+1]; toast(c.name+" moved to "+c.stage); } else { toast(c.name+" is already hired"); }
+  renderView();
+}
+function runPayroll(){
+  var active=DB.employees.filter(function(e){return e.status==="Active"||e.status==="Probation";});
+  if(!active.length){ toast("No payable employees","red"); return; }
+  var gross=active.reduce(function(s,e){return s+(+e.salary||0);},0);
+  var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var d=new Date(), label=months[d.getMonth()]+" "+d.getFullYear();
+  var run={id:uid("PY"),month:label,count:active.length,gross:gross,ded:Math.round(gross*0.19),status:"Pending approval",date:today()};
+  DB.payrolls.unshift(run); toast("Payroll run created for "+active.length+" employees"); renderView();
+}
+function approvePayroll(id){ var r=byId(DB.payrolls,id); if(!r) return; r.status="Approved & paid"; toast("Payroll approved & released","green"); renderView(); }
+
+/* ================================================================
+   RENDER + WIRING
+   ================================================================ */
+var active="dashboard";
+var VIEWS={dashboard:vDashboard,planning:vPlanning,recruitment:vRecruitment,records:vRecords,training:vTraining,
+  performance:vPerformance,compensation:vCompensation,payroll:vPayroll,relations:vRelations,safety:vSafety,
+  compliance:vCompliance,career:vCareer,engagement:vEngagement};
+
+function drawCharts(){
+  document.querySelectorAll("[data-chart]").forEach(function(el){
+    var t=el.getAttribute("data-chart");
+    if(t==="area")areaChart(el); else if(t==="donut")donut(el); else if(t==="vbars")vbars(el);
+    else if(t==="hbars")hbars(el); else if(t==="line")lineChart(el);
+  });
+}
+function renderView(){
+  var content=document.getElementById("content");
+  content.innerHTML=(VIEWS[active]||vDashboard)();
+  window.scrollTo(0,0);
+  drawCharts();
+  document.getElementById("crumbName").textContent=mod(active).name;
+  // employee filters
+  var s=document.getElementById("empSearch");
+  if(s){ var refresh=function(){document.getElementById("empTable").innerHTML=empRows();};
+    document.getElementById("empTable").innerHTML=empRows();
+    s.oninput=refresh;
+    var fd=document.getElementById("fDept"), fs=document.getElementById("fStatus");
+    if(fd) fd.onchange=refresh; if(fs) fs.onchange=refresh;
+  }
+}
+function renderNav(){
+  var nav=document.getElementById("nav"),html="";
+  MODULES.forEach(function(m){
+    html+='<button class="navitem'+(m.id===active?" on":"")+'" data-nav="'+m.id+'">'+icon(m.ic,17,m.id===active?C.amber:"#7E8CA6")+'<span style="flex:1">'+m.name+'</span>'+(m.n!=="—"?'<span class="num">'+m.n+'</span>':'')+'</button>';
+  });
+  nav.innerHTML=html;
+  nav.querySelectorAll("[data-nav]").forEach(function(b){ b.onclick=function(){ go(this.getAttribute("data-nav")); }; });
+}
+function go(id){ active=id; renderNav(); renderView(); closeSidebar(); setBurger(); }
+
+/* delegated actions inside content */
+document.getElementById("content").addEventListener("click",function(e){
+  var btn=e.target.closest("[data-action]"); if(!btn) return;
+  var a=btn.getAttribute("data-action"), store=btn.getAttribute("data-store"), id=btn.getAttribute("data-id");
+  if(a==="go") go(btn.getAttribute("data-go"));
+  else if(a==="add") addEntity(store);
+  else if(a==="edit") editEntity(store,id);
+  else if(a==="del") delEntity(store,id);
+  else if(a==="advance") advanceCandidate(id);
+  else if(a==="run-payroll") runPayroll();
+  else if(a==="approve-payroll") approvePayroll(id);
+  else if(a==="export") toast("Report exported (demo)");
+});
+
+/* sidebar / chrome */
+function openSidebar(){ document.getElementById("sidebar").classList.add("open"); document.getElementById("scrim").classList.add("show"); }
+function closeSidebar(){ document.getElementById("sidebar").classList.remove("open"); document.getElementById("scrim").classList.remove("show"); }
+var burger=document.getElementById("burger");
+function setBurger(){ burger.innerHTML=icon(document.getElementById("sidebar").classList.contains("open")?"x":"menu",22,C.ink); }
+burger.onclick=function(){ var sb=document.getElementById("sidebar"); if(sb.classList.contains("open"))closeSidebar(); else openSidebar(); setBurger(); };
+document.getElementById("scrim").onclick=function(){ closeSidebar(); setBurger(); };
+document.getElementById("crumbIcon").innerHTML=icon("chevron",14,C.muted);
+document.getElementById("bellWrap").innerHTML=icon("bell",19,C.muted)+'<span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:'+C.amber+';border-radius:8px;border:2px solid #fff"></span>';
+setBurger();
+
+var rt; window.addEventListener("resize",function(){ clearTimeout(rt); rt=setTimeout(drawCharts,150); });
+
+renderNav(); renderView();
+
+</script>
+</body>
+</html>
